@@ -1,0 +1,11 @@
+.env
+.DS_Store
+vox_api.log
+__pycache__/
+*.pyc
+node_modules/
+data/*.db
+data/*.sqlite3
+.pytest_cache/
+data/token/
+configs/google_credentials.json

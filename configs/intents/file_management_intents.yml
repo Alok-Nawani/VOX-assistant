@@ -1,0 +1,34 @@
+# File management intents and patterns
+file_management_intents:
+  list_files:
+    patterns:
+      - "list (files|directories) (in |)"
+      - "show (files|directories) (in |)"
+      - "what('s| is) in (the |)(folder|directory|path) "
+      - "contents of (the |)(folder|directory|path) "
+    
+  create_directory:
+    patterns:
+      - "create (a |)(new |)folder"
+      - "create (a |)(new |)directory"
+      - "make (a |)(new |)folder"
+      - "make (a |)(new |)directory"
+    
+  move_file:
+    patterns:
+      - "move (the |)(file|folder|directory)"
+      - "rename (the |)(file|folder|directory)"
+      - "copy (the |)(file|folder|directory)"
+    
+  delete_file:
+    patterns:
+      - "delete (the |)(file|folder|directory)"
+      - "remove (the |)(file|folder|directory)"
+      - "trash (the |)(file|folder|directory)"
+    
+  search_files:
+    patterns:
+      - "find (files|folders|directories)"
+      - "search for (files|folders|directories)"
+      - "locate (files|folders|directories)"
+      - "look for (files|folders|directories)"

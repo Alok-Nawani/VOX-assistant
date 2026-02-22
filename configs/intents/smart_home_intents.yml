@@ -1,0 +1,29 @@
+# Smart home intents and patterns
+smart_home_intents:
+  device_control:
+    patterns:
+      - "turn (on|off) (the |)"
+      - "(dim|brighten) (the |)"
+      - "set (the |)(temperature|brightness|volume) (of |)(the |)"
+      - "(increase|decrease) (the |)(temperature|brightness|volume) (of |)(the |)"
+      - "(open|close) (the |)"
+      - "(lock|unlock) (the |)"
+      - "(start|stop|pause|resume) (the |)"
+      - "(play|pause|next|previous) (on |)(the |)"
+    
+  device_status:
+    patterns:
+      - "what('s| is) the status of (the |)"
+      - "is (the |) (on|off)"
+      - "what('s| is) the temperature (of |)(the |)"
+      - "what('s| is) the brightness (of |)(the |)"
+      - "is (the |) (locked|unlocked)"
+      - "is (the |) (open|closed)"
+      - "what('s| is) playing (on |)(the |)"
+    
+  list_devices:
+    patterns:
+      - "list (all |)(smart |home |)devices"
+      - "show (all |)(smart |home |)devices"
+      - "what devices (do I have|are connected)"
+      - "what can (you|I) control"

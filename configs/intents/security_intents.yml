@@ -1,0 +1,37 @@
+# Security system intents and patterns
+security_intents:
+  arm_system:
+    patterns:
+      - "arm (the |)security system"
+      - "set (the |)alarm"
+      - "turn on (the |)security system"
+      - "activate (the |)security system"
+      - "secure the house"
+    
+  disarm_system:
+    patterns:
+      - "disarm (the |)security system"
+      - "turn off (the |)alarm"
+      - "deactivate (the |)security system"
+      - "disable (the |)security system"
+    
+  get_security_status:
+    patterns:
+      - "security status"
+      - "is (the |)security system (armed|on)"
+      - "check (the |)security system"
+      - "are (all |)the doors (and windows |)locked"
+    
+  get_security_events:
+    patterns:
+      - "(show|get|tell me) (the |)security events"
+      - "what('s| has) happened (with |in |)(security|)"
+      - "any security alerts"
+      - "check (the |)security log"
+    
+  trigger_panic:
+    patterns:
+      - "trigger (a |)(police|fire|medical) panic"
+      - "emergency (alert|alarm)"
+      - "call (the |)(police|fire department|ambulance)"
+      - "send help"

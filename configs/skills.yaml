@@ -1,0 +1,24 @@
+skills:
+  system_control:
+    allow: ["open_app", "volume_set", "screenshot"]
+    confirm: ["screen_record", "install_app"]
+    deny: []
+    risk: low
+    
+  reminders:
+    allow: ["add", "list", "mark_done"]
+    confirm: ["delete"]
+    deny: []
+    risk: low
+    
+  file_ops:
+    allow: ["read", "list"]
+    confirm: ["move", "delete"]
+    deny: ["write_system_files"]
+    risk: medium
+    
+  messaging:
+    allow: ["draft"]
+    confirm: ["send_message", "send_email"]
+    deny: ["read_private"]
+    risk: medium

@@ -1,0 +1,40 @@
+# Automation intents and patterns
+automation_intents:
+  create_routine:
+    patterns:
+      - "create (a |)(new |)routine"
+      - "add (a |)(new |)routine"
+      - "set up (a |)(new |)routine"
+      - "make (a |)(new |)routine"
+    
+  delete_routine:
+    patterns:
+      - "delete (the |)routine"
+      - "remove (the |)routine"
+      - "get rid of (the |)routine"
+    
+  list_routines:
+    patterns:
+      - "list (all |)(my |)routines"
+      - "show (all |)(my |)routines"
+      - "what routines (do I have|are set up)"
+    
+  toggle_routine:
+    patterns:
+      - "(enable|disable) (the |)routine"
+      - "turn (on|off) (the |)routine"
+      - "activate (the |)routine"
+      - "deactivate (the |)routine"
+    
+  trigger_routine:
+    patterns:
+      - "run (the |)routine"
+      - "trigger (the |)routine"
+      - "execute (the |)routine"
+      - "start (the |)routine"
+    
+  ifttt_trigger:
+    patterns:
+      - "trigger IFTTT (event|)"
+      - "run IFTTT (event|)"
+      - "execute IFTTT (event|)"

@@ -1,0 +1,22 @@
+# Email intents and patterns
+email_intents:
+  send_email:
+    patterns:
+      - "send (an email|a message) to"
+      - "email"
+      - "compose (an email|a message)"
+      - "write (an email|a message)"
+    
+  read_emails:
+    patterns:
+      - "check (my email|my emails|my messages)"
+      - "read (my email|my emails|my messages)"
+      - "show (my email|my emails|my messages)"
+      - "what emails do I have"
+      - "any new (email|emails|messages)"
+    
+  search_emails:
+    patterns:
+      - "search (my email|my emails|my messages)"
+      - "find (an email|emails|a message|messages)"
+      - "look for (an email|emails|a message|messages)"

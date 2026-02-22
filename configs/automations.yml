@@ -1,0 +1,92 @@
+# Automation configuration
+automations:
+  - id: morning_routine
+    name: "Morning Routine"
+    description: "Start the day with lights, weather, and news"
+    enabled: true
+    triggers:
+      - type: time
+        parameters:
+          time: "07:00"
+    actions:
+      - skill: smart_home
+        intent: device_control
+        entities:
+          device: "bedroom_lights"
+          action: "on"
+      - skill: weather
+        intent: get_weather
+        entities:
+          location: "current"
+      - skill: media_control
+        intent: play_media
+        entities:
+          query: "morning playlist"
+          service: "spotify"
+          
+  - id: night_routine
+    name: "Night Routine"
+    description: "Prepare for bedtime"
+    enabled: true
+    triggers:
+      - type: time
+        parameters:
+          time: "22:00"
+    actions:
+      - skill: smart_home
+        intent: device_control
+        entities:
+          device: "living_room_lights"
+          action: "off"
+      - skill: smart_home
+        intent: device_control
+        entities:
+          device: "bedroom_lights"
+          action: "dim"
+          brightness: 30
+          
+  - id: away_mode
+    name: "Away Mode"
+    description: "Secure home when nobody's home"
+    enabled: true
+    triggers:
+      - type: event
+        parameters:
+          event: "last_person_left"
+    actions:
+      - skill: smart_home
+        intent: device_control
+        entities:
+          device: "all_lights"
+          action: "off"
+      - skill: smart_home
+        intent: device_control
+        entities:
+          device: "security_system"
+          action: "arm"
+          
+  - id: welcome_home
+    name: "Welcome Home"
+    description: "Comfort settings when returning home"
+    enabled: true
+    triggers:
+      - type: event
+        parameters:
+          event: "first_person_arrived"
+    actions:
+      - skill: smart_home
+        intent: device_control
+        entities:
+          device: "entrance_lights"
+          action: "on"
+      - skill: smart_home
+        intent: device_control
+        entities:
+          device: "thermostat"
+          action: "set"
+          temperature: 22
+      - skill: media_control
+        intent: play_media
+        entities:
+          query: "welcome home playlist"
+          service: "spotify"

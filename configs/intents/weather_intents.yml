@@ -1,0 +1,16 @@
+# Weather intents and patterns
+weather_intents:
+  get_weather:
+    patterns:
+      - "what('s| is) the weather (like |)(in |at |)"
+      - "how('s| is) the weather (in |at |)"
+      - "current weather (in |at |)"
+      - "temperature (in |at |)"
+    
+  get_forecast:
+    patterns:
+      - "what('s| is) the forecast (like |)(in |at |)"
+      - "weather forecast (for |in |at |)"
+      - "(show|get|tell) me the forecast (for |in |at |)"
+      - "will it rain (in |at |)"
+      - "what('s| is) the weather going to be like (in |at |)"

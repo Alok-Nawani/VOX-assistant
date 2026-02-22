@@ -1,0 +1,29 @@
+# Phone control intents and patterns
+phone_intents:
+  send_message:
+    patterns:
+      - "send (a |)message to"
+      - "text"
+      - "send (a |)text to"
+      - "SMS"
+    
+  read_messages:
+    patterns:
+      - "read (my |)(messages|texts)"
+      - "check (my |)(messages|texts)"
+      - "any (new |)(messages|texts)"
+      - "show (my |)(messages|texts)"
+    
+  make_call:
+    patterns:
+      - "call"
+      - "phone"
+      - "dial"
+      - "ring"
+    
+  check_calls:
+    patterns:
+      - "check (my |)calls"
+      - "(show|get) (my |)call history"
+      - "any missed calls"
+      - "recent calls"

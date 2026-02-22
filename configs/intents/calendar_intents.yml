@@ -1,0 +1,23 @@
+# Calendar intents and patterns
+calendar_intents:
+  create_event:
+    patterns:
+      - "schedule (a meeting|an appointment|a call|an event)"
+      - "add (a meeting|an appointment|a call|an event) to my calendar"
+      - "create (a meeting|an appointment|a call|an event)"
+      - "set up (a meeting|an appointment|a call|an event)"
+      - "book (a meeting|an appointment|a call)"
+    
+  list_events:
+    patterns:
+      - "what('s| is) on my calendar"
+      - "show my (calendar|schedule|appointments|meetings|events)"
+      - "list my (calendar|schedule|appointments|meetings|events)"
+      - "what do I have (scheduled|planned)"
+      - "what are my upcoming (events|meetings|appointments)"
+    
+  cancel_event:
+    patterns:
+      - "cancel (the meeting|the appointment|the call|the event)"
+      - "remove (the meeting|the appointment|the call|the event)"
+      - "delete (the meeting|the appointment|the call|the event)"

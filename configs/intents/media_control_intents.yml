@@ -1,0 +1,49 @@
+# Media control intents and patterns
+media_control_intents:
+  play_media:
+    patterns:
+      - "play (some |)(music|song|track|playlist|album)"
+      - "play"
+      - "start playing"
+      - "put on"
+    
+  pause_media:
+    patterns:
+      - "pause (the |)(music|song|track|playback)"
+      - "stop (the |)(music|song|track|playback)"
+      - "pause"
+      - "stop"
+    
+  resume_media:
+    patterns:
+      - "resume (the |)(music|song|track|playback)"
+      - "continue (the |)(music|song|track|playback)"
+      - "unpause"
+      - "resume"
+      - "continue"
+    
+  next_track:
+    patterns:
+      - "next (song|track)"
+      - "skip (this |)(song|track)"
+      - "play (the |)next (song|track)"
+    
+  previous_track:
+    patterns:
+      - "previous (song|track)"
+      - "go back (a song|a track)"
+      - "play (the |)previous (song|track)"
+    
+  set_volume:
+    patterns:
+      - "set (the |)volume to"
+      - "(turn|make) (it |)(louder|quieter)"
+      - "(increase|decrease) (the |)volume"
+      - "volume (up|down)"
+    
+  get_playing:
+    patterns:
+      - "what('s| is) (playing|this song|this track)"
+      - "what song is this"
+      - "who('s| is) (singing|playing|this)"
+      - "show (me |)(song|track) info(rmation|)"

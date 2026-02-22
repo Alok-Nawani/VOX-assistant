@@ -1,0 +1,23 @@
+# News and information intents and patterns
+news_intents:
+  get_headlines:
+    patterns:
+      - "(get|show|tell me) (the |)headlines"
+      - "what('s| is) (in |)the news"
+      - "(latest|recent|current) news"
+      - "(get|show|tell me) (the |)news (from |in |about |)"
+    
+  search_news:
+    patterns:
+      - "search (for |)news about"
+      - "find (news|articles) about"
+      - "what('s| is) happening with"
+      - "tell me about"
+    
+  get_sports:
+    patterns:
+      - "(get|show|tell me) (the |)(sports|game) scores"
+      - "what('s| is) the score (of |in |)"
+      - "(latest|recent) (sports|game) (scores|results)"
+      - "who('s| is) (winning|playing)"
+      - "how did (the game|the match|they) (go|end)"
