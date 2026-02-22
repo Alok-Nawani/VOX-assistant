@@ -98,10 +98,19 @@ class SystemController:
         """Set screen brightness using AppleScript"""
         try:
             if self.os_type == 'darwin':
-                # Convert 0-100 scale to 0.0-1.0 for AppleScript
-                brightness_val = level / 100.0
-                cmd = f'tell application "System Events" to set (brightness of every display) to {brightness_val}'
-                subprocess.run(['osascript', '-e', cmd], check=False)
+                level = max(0, min(100, level))
+                steps = int(level * 16 / 100)
+                script = f'''
+                tell application "System Events"
+                    repeat 16 times
+                        key code 145
+                    end repeat
+                    repeat {steps} times
+                        key code 144
+                    end repeat
+                end tell
+                '''
+                subprocess.run(['osascript', '-e', script], check=False)
                 return True, f"Brightness set to {level}%"
             return False, "Unsupported OS for brightness control"
         except Exception as e:
@@ -135,8 +144,18 @@ class SystemController:
             folder = os.path.join(str(Path.home()), "Pictures", "Vox")
             os.makedirs(folder, exist_ok=True)
             path = os.path.join(folder, f"Screenshot_{timestamp}.png")
-            pyautogui.screenshot(path)
-            return True, path
+            
+            if self.os_type == 'darwin':
+                result = subprocess.run(['screencapture', '-x', path], check=False)
+                if result.returncode != 0:
+                    pyautogui.screenshot(path)
+            else:
+                pyautogui.screenshot(path)
+                
+            if os.path.exists(path):
+                return True, path
+            else:
+                return False, "Screenshot file was not created."
         except Exception as e:
             return False, f"Error taking screenshot: {str(e)}"
 

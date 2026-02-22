@@ -42,8 +42,25 @@ class SystemControlSkill(BaseSkill):
                 return {"success": False, "message": f"I couldn't close {app_name} for some reason."}
             return {"success": False, "message": "Which app should I close?"}
 
+        # Handle screen analysis
+        if any(cmd in text for cmd in ["analyze my screen", "read my screen", "what's on my screen", "look at my screen"]):
+            success, path = self.controller.take_screenshot()
+            if success:
+                try:
+                    import base64
+                    with open(path, "rb") as f:
+                        img_data = base64.b64encode(f.read()).decode()
+                    from ..ai.conversation import AIConversationHandler
+                    ai = AIConversationHandler()
+                    resp = await ai.get_response("Describe exactly what you see on my screen. Be analytical and helpful.", image=img_data)
+                    import os; os.remove(path)
+                    return {"success": True, "message": resp}
+                except Exception as e:
+                    return {"success": False, "message": f"I took the screenshot, but my visual cortex failed: {e}"}
+            return {"success": False, "message": "I couldn't optical scan the screen."}
+
         # Handle brightness/dimming
-        if any(cmd in text for cmd in ["dim", "brightness", "screen"]):
+        if any(cmd in text for cmd in ["dim", "brightness", "screen brightness"]):
             level = 20 if "dim" in text else 70
             if "max" in text: level = 100
             elif "half" in text: level = 50
@@ -72,12 +89,12 @@ class SystemControlSkill(BaseSkill):
             success, msg = self.controller.system_power(action)
             return {"success": success, "message": msg}
         elif any(word in text for word in ["battery", "power"]):
-            stats = self.controller.get_system_stats()
-            level = stats.get("battery", 0)
+            stats = self.controller.get_system_status()
+            level = stats.get("battery_percent", 0)
             return {"success": True, "message": f"Your battery level is currently at {level:.1f} percent, Alok."}
         elif any(word in text for word in ["cpu", "ram", "memory", "stats"]):
-            stats = self.controller.get_system_stats()
-            return {"success": True, "message": f"System status: CPU is at {stats.get('cpu', 0):.1f}%, and Memory is at {stats.get('ram', 0):.1f}%."}
+            stats = self.controller.get_system_status()
+            return {"success": True, "message": f"System status: CPU is at {stats.get('cpu_percent', 0):.1f}%."}
             
         return {"success": False, "message": "I'm not sure which system command to run."}
 
