@@ -1,81 +1,125 @@
-# Vox Assistant
+# VOX Assistant 🎙️🦊
 
-A privacy-first, modular voice assistant for macOS with extensible skills.
+A powerful, privacy-first, modular voice assistant framework designed seamlessly for macOS. Engineered as a proactive digital companion with deep system integration, extending far beyond simple query-response functions.
 
-## Features
+**Core Philosophy:** Vox doesn't just "assist"; it "operates" directly alongside you. 
 
-- Offline-first with local STT (faster-whisper) and wake word detection
-- Extensible skills architecture
-- Natural conversation with local LLM fallback
-- Memory and context awareness
-- Secure by design with granular permissions
+---
 
-## Quick Start
+## ✨ Features
 
-1. Clone the repository
-2. Create a virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-```
+- **Offline-First Capabilities:** Built with local STT (faster-whisper) and continuous edge wake-word listening (`pvporcupine`).
+- **Neural Reasoning Engine:** Fully integrated with Google's Gemini models for rich conversational context, memory-aware reasoning, and intent framing.
+- **Deep System Kernel Access:** Native macOS system management (open/close apps, control volume, adjust brightness, capture optical data via screenshots).
+- **Communication Pipelines:** Full WhatsApp Desktop automation and secure Email SMTP synchronization.
+- **Smart Rate-Limit Balancing:** Built on `gemini-flash-lite-latest` for high-frequency processing without hitting quota ceilings.
+- **Multi-Turn Contextual Awareness:** Capable of maintaining extended conversational sessions (e.g., sequentially asking for missing message recipients and intent). 
+- **Modular Skill Architecture:** Dynamically loads specialized skills (Weather, File Ops, System Control, Media Control, Calendar).
+- **Full GUI Dashboard:** A React-based web dashboard providing visual feedback and system telemetry of what Vox is actively processing.
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+---
 
-4. Copy and configure settings:
-```bash
-cp configs/settings.example.env .env
-# Edit .env with your settings
-```
+## 🚀 Quick Start
 
-5. Run the CLI app:
-```bash
-python apps/cli/main.py
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Alok-Nawani/VOX-assistant.git
+   cd VOX-assistant
+   ```
 
-6. Say "Hey Vox" and start talking!
+2. **Create a virtual environment:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
 
-## Available Commands
+3. **Install dependencies:**
+   *(Ensure you have system-level dependencies for PyAudio and standard macOS build tools).*
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-- System Control
-  - "Open [app name]"
-  - "Set volume to [0-100]%"
-  
-- Reminders (coming soon)
-  - "Remind me to [task] at [time]"
-  - "List my reminders"
-  
-- More skills coming soon!
+4. **Copy and configure settings:**
+   ```bash
+   cp configs/settings.example.env .env
+   # Edit .env with your Google Gemini API Key, Email settings, and Porcupine access key
+   ```
 
-## Project Structure
+5. **Run the API & Voice Engine:**
+   ```bash
+   uvicorn apps.api.main:app --host 0.0.0.0 --port 8000
+   ```
 
-```
+6. **(Optional) Run the Web Dashboard:**
+   ```bash
+   cd apps/webapp
+   npm install
+   npm run dev
+   ```
+
+7. **Say "Hey Vox" and start talking!**
+
+---
+
+## 🛠️ Available Capabilities (Skills)
+
+### 💻 System Control
+- *"Open [App Name]" / "Close [App Name]"*
+- *"Set volume to [0-100]%" / "Mute"*
+- *"Set screen brightness to [10-100]%"*
+- *"Take a screenshot"* / *"Analyze my screen"*
+
+### 📱 Communication (WhatsApp & Email)
+- *"Send an email"* -> Vox will initiate a conversational flow to ask for recipient and message.
+- *"Send a WhatsApp message to [Name] telling them [Message]"*
+- Neural framing automatically crafts messages based on conversational vibe (cheerful, serious, professional) directly in the first person. 
+
+### ☁️ Weather & Environment
+- *"What's the weather like in [City]?"*
+
+### 📁 File Operations
+- *"Find all files named [Query]"*
+- *"Read [Filename]"*
+
+### 🎵 Media Control
+- *"Play/Pause the music"*
+- *"Next track"* / *"Previous song"*
+
+*(More specialized skills are continuously added via the `core/skills` module).*
+
+---
+
+## 🏗️ Project Structure
+
+```text
 vox-assistant/
   apps/
-    cli/                # Command-line interface
-    macos-gui/          # Native GUI app (coming soon)
+    cli/                # Command-line testing interface
+    api/                # FastAPI backend & websocket listener
+    webapp/             # React/Vite native telemetry dashboard
   core/
-    io/                 # Audio I/O, STT, TTS
-    nlp/                # Intent parsing, LLM integration
-    skills/            # Modular capabilities
-    memory/            # Context and user data
-    tools/             # Utility functions
-    orchestrator/      # Command routing and execution
-  configs/             # Settings and skill definitions
-  tests/               # Test suite
-  data/                # Knowledge base, logs
-  scripts/             # Development utilities
+    ai/                 # Gemini Integration, NLP, and intelligent Framer
+    io/                 # Audio I/O, Porcupine Wake Word, Faster-Whisper
+    skills/             # Specialized modular skills (WhatsApp, Email, Sys Control)
+    memory/             # Context management and background chron jobs
+    system/             # Deep OS hooks (AppleScript handlers)
+    tools/              # Email Managers, Automation drivers 
+    orchestrator/       # Central processing, routing, and intent derivation
+  configs/              # Secure settings loading
+  data/                 # Cache, local DBs, and secure Vault
 ```
 
-## Contributing
+---
 
-1. Check the Issues for planned features
-2. Fork and create a feature branch
-3. Write tests for your changes
-4. Submit a pull request
+## 🤝 Contributing
 
-## License
+1. Check the Issues for planned features.
+2. Fork and create a feature branch.
+3. Keep the "Personality" consistent: Vox is a calm, articulate digital officer, not an excitable chatbot.
+4. Submit a pull request.
 
-MIT License - See LICENSE file for details
+---
+
+## 📜 License
+
+MIT License - See the `LICENSE` file for details. 
