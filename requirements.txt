@@ -6,7 +6,7 @@ pydantic>=2.5.2
 schedule==1.2.1
 python-dateutil==2.8.2
 supabase==2.3.4
-# postgrest is handled by supabase
+# postgrest version is handled by supabase
 
 # API and AI Integration
 google-generativeai>=0.3.0
