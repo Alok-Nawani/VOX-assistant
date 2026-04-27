@@ -3,13 +3,28 @@ import json
 import os
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+from supabase import create_client, Client
+import logging
 
 class MemoryManager:
-    """Manages Vox's long-term facts and short-term conversational context"""
+    """Manages Vox's long-term facts and short-term conversational context (Hybrid SQLite/Supabase)"""
     
     def __init__(self, db_path: str = "data/memory/vox_memory.db"):
         self.db_path = db_path
-        self._init_db()
+        self.supabase_url = os.getenv("SUPABASE_URL")
+        self.supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
+        self.client: Optional[Client] = None
+        
+        if self.supabase_url and self.supabase_key:
+            try:
+                self.client = create_client(self.supabase_url, self.supabase_key)
+                logging.info("Vox Memory: Cloud Uplink Established (Supabase)")
+            except Exception as e:
+                logging.error(f"Vox Memory: Supabase Connection Failed: {e}")
+        
+        if not self.client:
+            logging.info("Vox Memory: Operating in Local Mode (SQLite)")
+            self._init_db()
         
     def _init_db(self):
         """Initialize SQLite database with required tables and columns"""
@@ -98,6 +113,18 @@ class MemoryManager:
 
     def create_user(self, username: str, password_hash: str, full_name: str = "") -> int:
         """Create a new user and return their ID"""
+        if self.client:
+            try:
+                response = self.client.table("users").insert({
+                    "username": username,
+                    "password_hash": password_hash,
+                    "full_name": full_name
+                }).execute()
+                return response.data[0]["id"]
+            except Exception as e:
+                logging.error(f"Supabase Create User Error: {e}")
+                return -1
+                
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         try:
@@ -115,6 +142,17 @@ class MemoryManager:
 
     def get_user(self, username: str) -> Optional[Dict]:
         """Get user details by username"""
+        if self.client:
+            try:
+                response = self.client.table("users").select("*").eq("username", username).execute()
+                if response.data:
+                    user = response.data[0]
+                    return {"id": user["id"], "username": user["username"], "password_hash": user["password_hash"], "full_name": user["full_name"], "avatar_url": user["avatar_url"]}
+                return None
+            except Exception as e:
+                logging.error(f"Supabase Get User Error: {e}")
+                return None
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('SELECT id, username, password_hash, full_name, avatar_url FROM users WHERE username = ?', (username,))
@@ -134,6 +172,18 @@ class MemoryManager:
 
     def store_fact(self, user_id: int, key: str, value: str):
         """Store or update a personal fact about the user"""
+        if self.client:
+            try:
+                self.client.table("user_facts").upsert({
+                    "user_id": user_id,
+                    "fact_key": key,
+                    "fact_value": value,
+                    "updated_at": datetime.now().isoformat()
+                }).execute()
+                return
+            except Exception as e:
+                logging.error(f"Supabase Store Fact Error: {e}")
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('''
@@ -154,6 +204,14 @@ class MemoryManager:
 
     def get_all_facts(self, user_id: int) -> Dict[str, str]:
         """Retrieve all known facts as a dictionary"""
+        if self.client:
+            try:
+                response = self.client.table("user_facts").select("fact_key, fact_value").eq("user_id", user_id).execute()
+                return {row["fact_key"]: row["fact_value"] for row in response.data}
+            except Exception as e:
+                logging.error(f"Supabase Get Facts Error: {e}")
+                return {}
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('SELECT fact_key, fact_value FROM user_facts WHERE user_id = ?', (user_id,))
@@ -163,6 +221,19 @@ class MemoryManager:
 
     def log_interaction(self, user_id: int, role: str, content: str, image_url: Optional[str] = None):
         """Log a piece of the conversation"""
+        if self.client:
+            try:
+                self.client.table("conversation_logs").insert({
+                    "user_id": user_id,
+                    "role": role,
+                    "content": content,
+                    "image_url": image_url
+                }).execute()
+                # Cloud doesn't strictly need rotation for now (managed by DB size)
+                return
+            except Exception as e:
+                logging.error(f"Supabase Log Error: {e}")
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('''
@@ -183,6 +254,14 @@ class MemoryManager:
 
     def get_recent_context(self, user_id: int) -> List[Dict[str, str]]:
         """Retrieve recent conversation history for Gemini context"""
+        if self.client:
+            try:
+                response = self.client.table("conversation_logs").select("role, content, image_url").eq("user_id", user_id).order("id", desc=False).limit(12).execute()
+                return [{"role": row["role"], "content": row["content"], "image": row["image_url"]} for row in response.data]
+            except Exception as e:
+                logging.error(f"Supabase Get History Error: {e}")
+                return []
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('SELECT role, content, image_url FROM conversation_logs WHERE user_id = ? ORDER BY id ASC', (user_id,))
