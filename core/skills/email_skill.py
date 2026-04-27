@@ -120,14 +120,14 @@ class EmailSkill(BaseSkill):
         except Exception as e:
             logging.error(f"Vox System: Email AI Framing failed ({e}), using generic template.")
         
-        print(f"Vox AI Framing: Email to {recipient} -> Subject: {subject}")
+        logging.info(f"Vox AI Framing: Email to {recipient} -> Subject: {subject}")
         
         success = await self.email_manager.send_email(recipient, subject, body, user_id=user_id)
         
         if success:
-            return {"success": True, "message": f"Sent that email to {recipient}."}
+            return {"success": True, "message": f"I've dispatched that email to {recipient} via your local Mail system."}
         else:
-            return {"success": False, "message": f"I drafted the email to {recipient}, but couldn't send it. Check setup."}
+            return {"success": False, "message": f"I couldn't transmit the email to {recipient}. Please ensure your Email credentials are in the .env file or that your macOS Mail app is configured."}
 
     async def _handle_read(self, text: str, entities: Dict) -> Dict[str, Any]:
         user_id = entities.get("user_id", 1)

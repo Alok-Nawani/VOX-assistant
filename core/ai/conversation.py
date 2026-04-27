@@ -86,12 +86,12 @@ class AIConversationHandler:
                     
                     # Update prompt for vision awareness
                     vision_prompt = prompt + " (Alok has shared an image with you. Incorporate your observations naturally into your response.)"
-                    response = self.model.generate_content([vision_prompt, image_blob])
+                    response = await self.model.generate_content_async([vision_prompt, image_blob])
                 except Exception as e:
                     logging.error(f"Image processing error: {e}")
-                    response = self.model.generate_content(prompt)
+                    response = await self.model.generate_content_async(prompt)
             else:
-                response = self.model.generate_content(prompt)
+                response = await self.model.generate_content_async(prompt)
                 
             return response.text.strip()
             

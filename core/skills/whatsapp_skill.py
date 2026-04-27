@@ -99,7 +99,8 @@ class WhatsAppSkill(BaseSkill):
         
         recipient, intent = None, None
         try:
-            extraction = model.generate_content(extraction_prompt)
+            # Use async call to prevent blocking
+            extraction = await model.generate_content_async(extraction_prompt)
             data = extraction.text.strip()
             logging.info(f"WhatsApp Extraction Raw: {data}")
             
@@ -146,6 +147,7 @@ class WhatsAppSkill(BaseSkill):
         message = intent
         try:
             framer_context = f"Recipient: {recipient} | History: {str(history[-2:])}"
+            # frame_communication is already async
             framed = await framer.frame_communication(intent, "whatsapp", context=framer_context)
             message = framed.get("body", intent)
         except Exception as e:
@@ -153,6 +155,7 @@ class WhatsAppSkill(BaseSkill):
             message = intent
         
         print(f"Vox AI: Dispatching to {recipient} -> '{message}'")
+        # Unified dispatch
         success = await self.automation.send_whatsapp_message(recipient, message)
         
         if success:

@@ -137,42 +137,40 @@ class WhatsAppAutomation:
             
             script_content = f'''
             tell application "WhatsApp" to activate
-            delay 2
+            delay 1
             tell application "System Events"
                 tell process "WhatsApp"
                     set frontmost to true
-                    -- 1. Trigger Search (Cmd+F) directly as requested
-                    keystroke "f" using command down
-                    delay 1.5
+                    -- 1. Trigger New Chat (Cmd+N) - Cleaner than global search
+                    keystroke "n" using command down
+                    delay 1.0
                     
-                    -- 2. Clear Search Box (Select all and delete)
+                    -- 2. Clear Search Box just in case
                     keystroke "a" using command down
-                    delay 0.3
+                    delay 0.2
                     key code 51 -- Backspace
-                    delay 0.5
+                    delay 0.3
                     
-                    -- 3. Type/Paste Contact
+                    -- 3. Type Contact Name slowly for UI to catch up
                     set the clipboard to "{contact_esc}"
                     keystroke "v" using command down
-                    delay 4.5 -- Long wait for list filter
+                    delay 2.5 -- Critical wait for list filter
                     
-                    -- 4. Select Contact (Redundant Enters)
+                    -- 4. Select the first contact in the results
                     keystroke return
-                    delay 1.0
-                    key code 36
-                    delay 2.5 -- Wait for Chat Window to open
+                    delay 0.8
+                    key code 36 -- Extra Return for safety
+                    delay 1.5 -- Wait for chat window to transition
                     
                     -- 5. Deliver Message Content
                     set the clipboard to "{message_esc}"
                     keystroke "v" using command down
-                    delay 2.0
+                    delay 0.5
                     
-                    -- 6. Final Dispatch (Forced)
+                    -- 6. Final Dispatch
                     keystroke return
-                    delay 0.5
+                    delay 0.2
                     key code 36
-                    delay 0.5
-                    keystroke return
                 end tell
             end tell
             '''

@@ -43,8 +43,10 @@ Available Skills:
 1. system_control: Use for opening apps, taking screenshots, volume, or brightness.
 2. media: Use for playing songs, music, or controlling playback.
 3. whatsapp: Use for sending messages to contacts.
-4. art: Use for generating images or drawing.
-5. conversation: Use for greetings (hi, hello) or general questions.
+4. email: Use for sending, reading, or searching emails.
+5. calendar: Use for scheduling, listing, or canceling meetings/events.
+6. art: Use for generating images or drawing.
+7. conversation: Use for greetings (hi, hello) or general questions.
 
 Example 1: "Open calculator" -> {{"steps": [{{"skill": "system_control", "query": "calculator"}}]}}
 Example 2: "Play some music" -> {{"steps": [{{"skill": "media", "query": "music"}}]}}
@@ -53,7 +55,7 @@ Example 3: "Hi Vox" -> {{"steps": [{{"skill": "conversation", "query": "Hi Vox"}
 Return ONLY valid JSON.
 User Input: "{text}" """
         try:
-            response = self.model.generate_content(prompt)
+            response = await self.model.generate_content_async(prompt)
             result_text = response.text.strip()
             
             # Clean up markdown if model outputs it
