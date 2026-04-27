@@ -3,11 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 import psutil
 import os
+import sys
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+
+# Path resolution for Vercel
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 # Load environment variables
 load_dotenv()
@@ -82,8 +89,12 @@ async def startup_event():
 @app.post("/api/auth/signup")
 async def signup(request: AuthRequest):
     global _brain
-    if _brain is None: _brain = Orchestrator()
-    user_id = _brain.sign_up(request.username, request.password, full_name=request.full_name)
+    try:
+        if _brain is None: _brain = Orchestrator()
+        user_id = _brain.sign_up(request.username, request.password, full_name=request.full_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Vox Brain Failure: {str(e)}")
+        
     if user_id == -1:
         raise HTTPException(status_code=400, detail="Username already exists")
     token = create_access_token(data={"sub": str(user_id)})
@@ -92,8 +103,12 @@ async def signup(request: AuthRequest):
 @app.post("/api/auth/login")
 async def login(request: AuthRequest):
     global _brain
-    if _brain is None: _brain = Orchestrator()
-    user = _brain.authenticate(request.username, request.password)
+    try:
+        if _brain is None: _brain = Orchestrator()
+        user = _brain.authenticate(request.username, request.password)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Vox Brain Failure: {str(e)}")
+        
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token(data={"sub": str(user['id'])})
