@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/api/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "apps/webapp/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "apps/api/main.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "apps/webapp/$1",
+      "check": true
+    }
+  ]
+}
