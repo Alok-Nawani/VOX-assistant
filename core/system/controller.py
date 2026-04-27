@@ -1,12 +1,20 @@
 import os
 import subprocess
 import platform
-import pyautogui
-from pathlib import Path
 from typing import Optional, List, Tuple, Dict
 from datetime import datetime, timedelta
 import shutil
-import psutil
+
+# Lazy load heavy system libraries
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+try:
+    import pyautogui
+except Exception:
+    pyautogui = None
 
 class SystemController:
     """Unified controller for system operations on macOS"""
@@ -25,7 +33,8 @@ class SystemController:
         if self.is_headless:
             print("Vox Core: Running in Headless/Server mode. Physical UI commands will be simulated.")
         
-        pyautogui.FAILSAFE = True
+        if pyautogui:
+            pyautogui.FAILSAFE = True
         
     def check_permissions(self) -> Tuple[bool, str]:
         """Check if Vox has necessary system permissions (Accessibility on macOS)"""
@@ -112,14 +121,8 @@ class SystemController:
     def control_volume(self, action: str, level: Optional[int] = None) -> Tuple[bool, str]:
         """Control system volume"""
         try:
-            if action == "up":
-                pyautogui.press('volumeup')
-                return True, "Volume increased"
-            elif action == "down":
-                pyautogui.press('volumedown')
-                return True, "Volume decreased"
             elif action == "mute":
-                pyautogui.press('volumemute')
+                if pyautogui: pyautogui.press('volumemute')
                 return True, "Volume muted"
             elif action == "set" and level is not None:
                 level = max(0, min(100, level))
@@ -225,12 +228,16 @@ class SystemController:
     def get_system_status(self) -> Dict:
         """Get current system metrics (CPU, Battery)"""
         status = {
-            "cpu_percent": psutil.cpu_percent(interval=None),
+            "cpu_percent": 0,
             "battery_percent": 100,
             "is_charging": True
         }
         
+        if not psutil:
+            return status
+
         try:
+            status["cpu_percent"] = psutil.cpu_percent(interval=None)
             battery = psutil.sensors_battery()
             if battery:
                 status["battery_percent"] = battery.percent

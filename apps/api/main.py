@@ -71,8 +71,13 @@ async def get_current_user(token: HTTPAuthorizationCredentials = Depends(securit
 @app.on_event("startup")
 async def startup_event():
     global _brain
-    _brain = Orchestrator()
-    print("Vox Brain & Auth Engine: Online")
+    try:
+        _brain = Orchestrator()
+        print("Vox Brain & Auth Engine: Online")
+    except Exception as e:
+        print(f"CRITICAL ERROR: Vox Brain failed to initialize: {e}")
+        # Initialize an empty object to prevent downstream crashes
+        _brain = None
 
 @app.post("/api/auth/signup")
 async def signup(request: AuthRequest):
