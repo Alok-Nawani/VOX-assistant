@@ -19,7 +19,9 @@ class ConversationSkill(BaseSkill):
             history = params.get("history", [])
             facts = params.get("facts", {})
             image = params.get("image")
-            message = await self.handler.get_response(text, history, facts, image=image)
+            language = params.get("language", "en")
+            tone = params.get("tone", "Jarvis")
+            message = await self.handler.get_response(text, history, facts, image=image, language=language, tone=tone)
             
         return {
             "success": True,

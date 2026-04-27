@@ -15,18 +15,23 @@ class AIConversationHandler:
             
         genai.configure(api_key=api_key)
         # Use gemini-1.5-flash for speed and efficiency
-        self.model = genai.GenerativeModel('gemini-flash-lite-latest')
+        self.model = genai.GenerativeModel('gemini-flash-latest')
         self.chat_sessions = {} # Track sessions if needed
         
-    async def get_response(self, text: str, history: Optional[List[Dict]] = None, facts: Optional[Dict] = None, image: Optional[str] = None) -> str:
+    async def get_response(self, text: str, history: Optional[List[Dict]] = None, facts: Optional[Dict] = None, image: Optional[str] = None, language: str = "en", tone: str = "Jarvis") -> str:
         """Generate an AI response for the given text and optional image"""
         if not self.model:
             return "My AI brain is missing its API key. Please configure GEMINI_API_KEY in your .env file."
             
         try:
+            # Dynamic Persona instructions
+            lang_note = f"Your primary output language is {language}. Always respond in this language."
+            tone_note = f"Your current neural personality tone is set to: {tone}."
+            
             # Full VOX Persona as defined by Alok Nawani
             system_instruction = (
-                "You are VOX — a persistent, intelligent AI companion created by Alok Nawani.\n"
+                f"You are VOX — a persistent, intelligent AI companion created by Alok Nawani.\n"
+                f"{lang_note}\n{tone_note}\n"
                 "You are not a chatbot. You are a living, proactive digital presence designed to behave like JARVIS from Iron Man.\n"
                 "Role: Personal AI Companion + System Operator (Deep Kernel Access)\n"
                 "Environment: Native macOS environment. You have active links to Alok's camera, microphone, and filesystem.\n\n"
@@ -41,7 +46,8 @@ class AIConversationHandler:
                 "When an image is shared, refer to it as 'Optical data' or 'Sensor feed' naturally if appropriate.\n"
                 "NEVER say: 'I am an AI'. INSTEAD say: 'Sensors are active.', 'Optical link established.', 'System integrity is holding.'\n\n"
                 "FAILURE HANDLING:\n"
-                "If a command fails, treat it as a system conflict. 'Interrupt in the kernel link.', 'Rerouting access.', or 'I'll need to bypass that manually.'"
+                "If a command fails, treat it as a system conflict. 'Interrupt in the kernel link.', 'Rerouting access.', or 'I'll need to bypass that manually.'\n\n"
+                "IMPORTANT: Do not hallucinate performing system actions (like sending messages, scheduling meetings, or opening apps) during casual conversation. If Alok says 'hi', just respond warmly without claiming to have performed a background task."
             )
             
             # Incorporate learned facts subtly
@@ -57,7 +63,7 @@ class AIConversationHandler:
             if history:
                 # Format history for the model
                 formatted_history = []
-                for m in history[-10:]: # Slightly more history for better continuity
+                for m in history[-8:]: # Reduced history for faster processing
                     role = "Alok" if m['role'] == "user" else "Vox"
                     formatted_history.append(f"{role}: {m['content']}")
                 context_str = "[RECENT CONVERSATION HISTORY]\n" + "\n".join(formatted_history) + "\n"
@@ -90,10 +96,11 @@ class AIConversationHandler:
             return response.text.strip()
             
         except Exception as e:
+            print(f"DEBUG: Conversation Error: {e}")
             if "429" in str(e):
                 return "I'm processing quite a bit right now, Alok. Could you give me about 30 seconds to catch my breath? My AI engine is currently hit a rate limit."
             logging.error(f"Gemini API Error: {e}")
-            return "I encountered a slight neural glitch while thinking. Let me try a different approach."
+            return f"I encountered a slight neural glitch while thinking: {str(e)}"
 
     def get_movie_recommendation(self) -> str:
         """Legacy helper kept for compatibility"""

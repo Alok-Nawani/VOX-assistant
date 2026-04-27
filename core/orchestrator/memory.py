@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional
 class MemoryManager:
     """Manages Vox's long-term facts and short-term conversational context"""
     
-    def __init__(self, db_path: str = "vox_assistant/data/memory/vox_memory.db"):
+    def __init__(self, db_path: str = "data/memory/vox_memory.db"):
         self.db_path = db_path
         self._init_db()
         
@@ -23,9 +23,23 @@ class MemoryManager:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE,
                 password_hash TEXT,
+                full_name TEXT,
+                avatar_url TEXT,
                 created_at TIMESTAMP
             )
         ''')
+
+        # Migration: Add full_name if missing
+        try:
+            cursor.execute("SELECT full_name FROM users LIMIT 1")
+        except sqlite3.OperationalError:
+            cursor.execute("ALTER TABLE users ADD COLUMN full_name TEXT")
+
+        # Migration: Add avatar_url if missing
+        try:
+            cursor.execute("SELECT avatar_url FROM users LIMIT 1")
+        except sqlite3.OperationalError:
+            cursor.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
         
         # 2. Handle migrations for existing tables (User Facts & Logs)
         # Create them if they don't exist
@@ -82,15 +96,15 @@ class MemoryManager:
         conn.commit()
         conn.close()
 
-    def create_user(self, username: str, password_hash: str) -> int:
+    def create_user(self, username: str, password_hash: str, full_name: str = "") -> int:
         """Create a new user and return their ID"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         try:
             cursor.execute('''
-                INSERT INTO users (username, password_hash, created_at)
-                VALUES (?, ?, ?)
-            ''', (username, password_hash, datetime.now().isoformat()))
+                INSERT INTO users (username, password_hash, full_name, created_at)
+                VALUES (?, ?, ?, ?)
+            ''', (username, password_hash, full_name, datetime.now().isoformat()))
             user_id = cursor.lastrowid
             conn.commit()
             return user_id
@@ -103,12 +117,20 @@ class MemoryManager:
         """Get user details by username"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute('SELECT id, username, password_hash FROM users WHERE username = ?', (username,))
+        cursor.execute('SELECT id, username, password_hash, full_name, avatar_url FROM users WHERE username = ?', (username,))
         row = cursor.fetchone()
         conn.close()
         if row:
-            return {"id": row[0], "username": row[1], "password_hash": row[2]}
+            return {"id": row[0], "username": row[1], "password_hash": row[2], "full_name": row[3], "avatar_url": row[4]}
         return None
+
+    def update_user_avatar(self, user_id: int, avatar_url: str):
+        """Update the user's profile picture"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('UPDATE users SET avatar_url = ? WHERE id = ?', (avatar_url, user_id))
+        conn.commit()
+        conn.close()
 
     def store_fact(self, user_id: int, key: str, value: str):
         """Store or update a personal fact about the user"""
@@ -148,11 +170,11 @@ class MemoryManager:
             VALUES (?, ?, ?, ?, ?)
         ''', (user_id, role, content, image_url, datetime.now().isoformat()))
         
-        # Maintain only last 20 messages for short-term context window
+        # Maintain only last 12 messages for faster processing
         cursor.execute('''
             DELETE FROM conversation_logs 
             WHERE user_id = ? AND id NOT IN (
-                SELECT id FROM conversation_logs WHERE user_id = ? ORDER BY id DESC LIMIT 20
+                SELECT id FROM conversation_logs WHERE user_id = ? ORDER BY id DESC LIMIT 12
             )
         ''', (user_id, user_id))
         
@@ -168,6 +190,14 @@ class MemoryManager:
         conn.close()
         return history
 
+    def clear_history(self, user_id: int):
+        """Delete all conversation logs for a specific user"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM conversation_logs WHERE user_id = ?', (user_id,))
+        conn.commit()
+        conn.close()
+
     def search_facts(self, user_id: int, query: str) -> str:
         """Simple string match to find relevant facts based on user query"""
         facts = self.get_all_facts(user_id)
@@ -176,6 +206,15 @@ class MemoryManager:
             if k.lower() in query.lower() or any(word in query.lower() for word in k.split('_')):
                 relevant.append(f"{k}: {v}")
         return "\n".join(relevant) if relevant else ""
+
+    def store_alias(self, user_id: int, trigger: str, action: str):
+        """Store a custom command alias"""
+        self.store_fact(user_id, f"alias_{trigger.lower().strip()}", action)
+        
+    def get_aliases(self, user_id: int) -> Dict[str, str]:
+        """Retrieve all custom aliases for the user"""
+        facts = self.get_all_facts(user_id)
+        return {k.replace('alias_', ''): v for k, v in facts.items() if k.startswith('alias_')}
 
 class FactExtractor:
     """Uses AI to extract facts from conversation history"""
@@ -186,7 +225,7 @@ class FactExtractor:
         """Analyze text for facts and update the DB using Gemini"""
         import google.generativeai as genai
         try:
-            model = genai.GenerativeModel('gemini-flash-lite-latest')
+            model = genai.GenerativeModel('gemini-1.5-flash')
             prompt = (
                 "You are the VOX Kernel Learning Module. "
                 "Analyze this diagnostic interaction and identify any persistent user patterns, preferences, or environment variables "

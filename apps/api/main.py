@@ -40,6 +40,8 @@ system_controller = SystemController()
 class ChatRequest(BaseModel):
     text: str
     image: Optional[str] = None
+    language: Optional[str] = "en"
+    tone: Optional[str] = "Jarvis"
 
 class SaveImageRequest(BaseModel):
     image: str
@@ -48,6 +50,7 @@ class SaveImageRequest(BaseModel):
 class AuthRequest(BaseModel):
     username: str
     password: str
+    full_name: Optional[str] = ""
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -75,11 +78,11 @@ async def startup_event():
 async def signup(request: AuthRequest):
     global _brain
     if _brain is None: _brain = Orchestrator()
-    user_id = _brain.sign_up(request.username, request.password)
+    user_id = _brain.sign_up(request.username, request.password, full_name=request.full_name)
     if user_id == -1:
         raise HTTPException(status_code=400, detail="Username already exists")
     token = create_access_token(data={"sub": str(user_id)})
-    return {"access_token": token, "token_type": "bearer", "user": {"id": user_id, "username": request.username}}
+    return {"access_token": token, "token_type": "bearer", "user": {"id": user_id, "username": request.username, "full_name": request.full_name}}
 
 @app.post("/api/auth/login")
 async def login(request: AuthRequest):
@@ -113,6 +116,13 @@ async def get_history(user = Depends(get_current_user)):
     if _brain is None: _brain = Orchestrator()
     return _brain.memory.get_recent_context(user['id'])
 
+@app.post("/api/history/clear")
+async def clear_user_history(user = Depends(get_current_user)):
+    """Clear history for authenticated user"""
+    from core.orchestrator.brain import clear_history
+    clear_history(user['id'])
+    return {"success": True, "message": "History cleared"}
+
 @app.get("/api/facts")
 async def get_facts(user = Depends(get_current_user)):
     """Get all stored facts about the user"""
@@ -136,9 +146,9 @@ async def get_calendar(user = Depends(get_current_user)):
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest, user = Depends(get_current_user)):
-    """Process a natural language command for authenticated user"""
+    """Process a natural language command"""
     try:
-        response = await handle(request.text, user_id=user['id'], image=request.image)
+        response = await handle(request.text, user_id=user['id'], image=request.image, language=request.language, tone=request.tone)
         return {
             "response": response.display_text,
             "data": response.data
@@ -153,5 +163,16 @@ async def save_image(request: SaveImageRequest, user = Depends(get_current_user)
     if success:
         return {"success": True, "path": path}
     return {"success": False, "message": path}
+
+class AvatarRequest(BaseModel):
+    avatar_url: str
+
+@app.post("/api/user/avatar")
+async def update_avatar(request: AvatarRequest, user = Depends(get_current_user)):
+    """Update user's profile avatar"""
+    global _brain
+    if _brain is None: _brain = Orchestrator()
+    _brain.memory.update_user_avatar(user['id'], request.avatar_url)
+    return {"success": True}
 
 # Run with: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000

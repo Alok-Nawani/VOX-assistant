@@ -27,39 +27,73 @@ class SystemController:
         
         pyautogui.FAILSAFE = True
         
+    def check_permissions(self) -> Tuple[bool, str]:
+        """Check if Vox has necessary system permissions (Accessibility on macOS)"""
+        if self.os_type == 'darwin':
+            # Check for Accessibility permissions using a harmless AppleScript
+            script = 'tell application "System Events" to get name of first process'
+            try:
+                subprocess.run(['osascript', '-e', script], capture_output=True, check=True, timeout=5)
+                return True, "Accessibility permissions granted."
+            except subprocess.CalledProcessError:
+                return False, "Accessibility permissions missing. Please grant Vox access in System Settings > Privacy & Security > Accessibility."
+            except Exception as e:
+                return False, f"Permission check failed: {e}"
+        return True, "No specific permissions required for this platform."
+
     def open_app(self, app_name: str) -> Tuple[bool, str]:
         """Open a macOS application"""
         try:
             # Common app name mapping
             apps = {
-                'browser': 'Safari.app',
-                'safari': 'Safari.app',
-                'chrome': 'Google Chrome.app',
-                'calculator': 'Calculator.app',
-                'calendar': 'Calendar.app',
-                'mail': 'Mail.app',
-                'music': 'Music.app',
-                'photos': 'Photos.app',
-                'terminal': 'Terminal.app',
-                'settings': 'System Settings.app',
-                'vscode': 'Visual Studio Code.app',
-                'spotify': 'Spotify.app'
+                'browser': 'Safari',
+                'safari': 'Safari',
+                'chrome': 'Google Chrome',
+                'calculator': 'Calculator',
+                'calendar': 'Calendar',
+                'mail': 'Mail',
+                'music': 'Music',
+                'photos': 'Photos',
+                'terminal': 'Terminal',
+                'settings': 'System Settings',
+                'vscode': 'Visual Studio Code',
+                'spotify': 'Spotify',
+                'finder': 'Finder',
+                'notes': 'Notes',
+                'reminders': 'Reminders'
             }
             
-            target = apps.get(app_name.lower(), f"{app_name}.app")
+            app_query = app_name.lower().strip()
+            target = apps.get(app_query, app_name)
+            
+            print(f"Vox System: Attempting to open application '{target}'...")
             
             if self.os_type == 'darwin':
-                subprocess.run(['open', '-a', target], check=False)
-                return True, f"Opening {app_name}"
+                # Try opening by name first
+                result = subprocess.run(['open', '-a', target], capture_output=True, text=True)
+                if result.returncode == 0:
+                    return True, f"Opening {target}"
+                
+                print(f"Vox System: Primary open failed for '{target}': {result.stderr.strip()}")
+
+                # Try common path
+                path = f"/Applications/{target}.app"
+                if os.path.exists(path):
+                    subprocess.run(['open', path])
+                    return True, f"Opening {target}"
+                
+                # Final attempt: try opening as a raw string (sometimes works for non-app binaries)
+                result = subprocess.run(['open', target], capture_output=True, text=True)
+                if result.returncode == 0:
+                    return True, f"Opening {target}"
+                    
+                return False, f"Could not find application: {target}. Error: {result.stderr.strip()}"
             elif self.os_type == 'windows':
-                # Windows uses 'start' or direct path
-                subprocess.run(['start', app_name], shell=True, check=False)
-                return True, f"Opening {app_name}"
-            elif self.os_type == 'linux':
-                subprocess.run(['xdg-open', app_name], check=False)
-                return True, f"Opening {app_name}"
+                os.system(f"start {target}")
+                return True, f"Opening {target}"
             return False, "Unsupported OS for app opening"
         except Exception as e:
+            print(f"Vox System Error: {e}")
             return False, f"Error opening {app_name}: {str(e)}"
 
     def close_app(self, app_name: str) -> Tuple[bool, str]:

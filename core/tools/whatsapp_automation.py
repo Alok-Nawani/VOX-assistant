@@ -178,8 +178,8 @@ class WhatsAppAutomation:
             '''
             
             try:
-                # Use subprocess to avoid shell string escaping issues
-                subprocess.run(["osascript", "-e", script_content], check=True)
+                # Use subprocess with a safety timeout to avoid blocking the whole backend
+                subprocess.run(["osascript", "-e", script_content], check=True, timeout=20)
                 print(f"Vox Engine: Dispatch success for {contact_name}.")
                 return True
             except subprocess.CalledProcessError as e:

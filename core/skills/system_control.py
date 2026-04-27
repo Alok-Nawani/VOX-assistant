@@ -14,6 +14,11 @@ class SystemControlSkill(BaseSkill):
         entities = params.get("entities", {})
         text = params.get("raw_text", "").lower()
         
+        # 0. Check Permissions First
+        has_perm, perm_msg = self.controller.check_permissions()
+        if not has_perm:
+            return {"success": False, "message": f"I need your authorization to control this system. {perm_msg}"}
+        
         # Determine specific action
         if "volume" in text or intent == "volume_set":
             volume = self._extract_volume(text)

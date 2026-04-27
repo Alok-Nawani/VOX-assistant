@@ -81,7 +81,7 @@ class WhatsAppSkill(BaseSkill):
         framer = MessageFramer()
         
         import google.generativeai as genai
-        model = genai.GenerativeModel('gemini-flash-lite-latest')
+        model = genai.GenerativeModel('gemini-flash-latest')
         extraction_prompt = (
             "Analyze this WhatsApp command: " + text + "\n\n"
             "TASK: Separate the RECIPIENT (the person's name) from the INTENT (what needs to be said).\n"
