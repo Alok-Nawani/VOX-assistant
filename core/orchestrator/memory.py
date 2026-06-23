@@ -9,8 +9,7 @@ import logging
 class MemoryManager:
     """Manages Vox's long-term facts and short-term conversational context (Hybrid SQLite/Supabase)"""
     
-    def __init__(self, db_path: str = "data/memory/vox_memory.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
         self.supabase_url = os.getenv("SUPABASE_URL")
         self.supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
         self.client: Optional[Client] = None
@@ -23,8 +22,15 @@ class MemoryManager:
                 logging.error(f"Vox Memory: Supabase Connection Failed: {e}")
         
         if not self.client:
-            logging.info("Vox Memory: Operating in Local Mode (SQLite)")
+            # Use /tmp on Vercel (read-only FS except /tmp), local data/ path otherwise
+            if db_path is None:
+                is_vercel = os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME")
+                db_path = "/tmp/vox_memory.db" if is_vercel else "data/memory/vox_memory.db"
+            self.db_path = db_path
+            logging.info(f"Vox Memory: Operating in Local Mode (SQLite @ {self.db_path})")
             self._init_db()
+        else:
+            self.db_path = db_path or "data/memory/vox_memory.db"
         
     def _init_db(self):
         """Initialize SQLite database with required tables and columns"""
