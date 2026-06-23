@@ -31,4 +31,5 @@ chromadb==0.4.24
 # UI and Tools
 rich==13.7.0
 click==8.1.7
+parsedatetime==2.6
 # Note: pyautogui and pyobjc are excluded from cloud build to prevent Vercel crashes
