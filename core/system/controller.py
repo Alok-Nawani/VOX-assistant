@@ -121,6 +121,14 @@ class SystemController:
     def control_volume(self, action: str, level: Optional[int] = None) -> Tuple[bool, str]:
         """Control system volume"""
         try:
+            if action == "up":
+                if pyautogui: pyautogui.press('volumeup')
+                else: subprocess.run(['osascript', '-e', 'set volume output volume (output volume of (get volume settings) + 10)'], check=False)
+                return True, "Volume increased"
+            elif action == "down":
+                if pyautogui: pyautogui.press('volumedown')
+                else: subprocess.run(['osascript', '-e', 'set volume output volume (output volume of (get volume settings) - 10)'], check=False)
+                return True, "Volume decreased"
             elif action == "mute":
                 if pyautogui: pyautogui.press('volumemute')
                 return True, "Volume muted"
