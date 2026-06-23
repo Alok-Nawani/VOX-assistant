@@ -19,6 +19,10 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly'
 ]
 
+# Detect Vercel/serverless: only /tmp is writable
+_IS_SERVERLESS = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+_TOKEN_DIR = "/tmp/vox_tokens" if _IS_SERVERLESS else "data/token"
+
 class GoogleAuthManager:
     def __init__(self, credentials_path: str = "configs/google_credentials.json"):
         """Initialize Google Calendar API auth manager"""
@@ -27,12 +31,12 @@ class GoogleAuthManager:
         
     def _ensure_paths(self):
         """Ensure necessary directories exist"""
-        Path("data/token").mkdir(parents=True, exist_ok=True)
+        Path(_TOKEN_DIR).mkdir(parents=True, exist_ok=True)
         
     async def get_credentials(self, user_id: int) -> Optional[Credentials]:
         """Get valid Google credentials for a specific user"""
         creds = None
-        token_path = f"data/token/google_token_{user_id}.pickle"
+        token_path = f"{_TOKEN_DIR}/google_token_{user_id}.pickle"
         
         # Load existing token if present
         if os.path.exists(token_path):

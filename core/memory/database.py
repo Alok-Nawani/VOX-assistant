@@ -1,11 +1,16 @@
 import sqlite3
 import logging
+import os
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
 from .schema import SCHEMA
+
+# Detect serverless (Vercel): only /tmp is writable
+_IS_SERVERLESS = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+_DEFAULT_DB = "/tmp/vox_reminders.db" if _IS_SERVERLESS else "data/memory.db"
 
 @dataclass
 class Reminder:
@@ -20,15 +25,16 @@ class Reminder:
     updated_at: Optional[datetime] = None
 
 class DatabaseManager:
-    def __init__(self, db_path: str = "data/memory.db"):
+    def __init__(self, db_path: str = None):
         """Initialize database connection and ensure schema exists"""
-        self.db_path = db_path
+        self.db_path = db_path or _DEFAULT_DB
         self._ensure_db_exists()
         
     def _ensure_db_exists(self):
         """Create database and tables if they don't exist"""
         db_dir = Path(self.db_path).parent
-        db_dir.mkdir(parents=True, exist_ok=True)
+        if str(db_dir) and str(db_dir) != ".":
+            db_dir.mkdir(parents=True, exist_ok=True)
         
         with sqlite3.connect(self.db_path) as conn:
             conn.executescript(SCHEMA)

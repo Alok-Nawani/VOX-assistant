@@ -34,7 +34,9 @@ class MemoryManager:
         
     def _init_db(self):
         """Initialize SQLite database with required tables and columns"""
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and db_dir not in ("/tmp", "/"):
+            os.makedirs(db_dir, exist_ok=True)
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
