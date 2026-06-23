@@ -1,7 +1,14 @@
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+try:
+    import spotipy
+    from spotipy.oauth2 import SpotifyOAuth
+except ImportError:
+    spotipy = None
+    SpotifyOAuth = None
 from typing import Dict, List, Optional
-import vlc
+try:
+    import vlc
+except ImportError:
+    vlc = None
 import logging
 import os
 

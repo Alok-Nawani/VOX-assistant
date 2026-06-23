@@ -1,4 +1,7 @@
-import parsedatetime
+try:
+    import parsedatetime
+except ImportError:
+    parsedatetime = None
 from datetime import datetime
 from typing import Optional, Tuple
 
@@ -11,6 +14,8 @@ def extract_datetime(text: str) -> Optional[Tuple[datetime, datetime]]:
     Returns:
         Tuple of (start_time, end_time) as datetime objects, or None if no time found
     """
+    if parsedatetime is None:
+        return None
     cal = parsedatetime.Calendar()
     
     try:

@@ -1,7 +1,10 @@
 import os
 import queue
 import threading
-import pyttsx3
+try:
+    import pyttsx3
+except ImportError:
+    pyttsx3 = None
 from typing import Optional
 from dataclasses import dataclass
 from enum import Enum
@@ -27,8 +30,11 @@ class TTSEngine:
         self.provider = TTSProvider.SYSTEM
         
         # Initialize offline TTS
-        self.pyttsx3_engine = pyttsx3.init()
-        self.pyttsx3_engine.setProperty('rate', 175)
+        if pyttsx3 is not None:
+            self.pyttsx3_engine = pyttsx3.init()
+            self.pyttsx3_engine.setProperty('rate', 175)
+        else:
+            self.pyttsx3_engine = None
         
         # Start worker thread
         self.worker_thread = threading.Thread(target=self._process_queue, daemon=True)
