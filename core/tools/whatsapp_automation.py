@@ -1,6 +1,9 @@
 import os
 import time
-import pyautogui
+try:
+    import pyautogui
+except ImportError:
+    pyautogui = None
 import pyperclip
 import platform
 import logging
@@ -12,8 +15,9 @@ class WhatsAppAutomation:
     def __init__(self):
         """Initialize WhatsApp automation"""
         # Set up safety nets
-        pyautogui.FAILSAFE = True  # Move mouse to corner to abort
-        pyautogui.PAUSE = 0.5  # Add small delay between actions
+        if pyautogui:
+            pyautogui.FAILSAFE = True  # Move mouse to corner to abort
+            pyautogui.PAUSE = 0.5  # Add small delay between actions
         
     def open_whatsapp(self) -> bool:
         """Opens/Activates WhatsApp Desktop using AppleScript for reliable focus"""
