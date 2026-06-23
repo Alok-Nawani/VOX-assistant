@@ -25,9 +25,21 @@ SECRET_KEY = os.getenv("JWT_SECRET", "vox_secret_key_8899")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
 
-# Import Vox core
-from core.orchestrator.brain import handle, _brain, Orchestrator
-from core.system.controller import SystemController
+# Import Vox core with error capturing for Vercel debugging
+import traceback
+import_error = None
+try:
+    from core.orchestrator.brain import handle, Orchestrator, _brain
+    from core.system.controller import SystemController
+except Exception as e:
+    import_error = traceback.format_exc()
+    print(f"FAILED TO IMPORT CORE: {import_error}")
+    _brain = None
+    # Mock classes to allow FastAPI to boot and serve the error
+    class Orchestrator:
+        async def startup(self): pass
+    class SystemController:
+        def get_system_status(self): return {}
 
 system_controller = SystemController()
 
@@ -41,6 +53,16 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": f"Internal server error: {str(exc)}"}
     )
+
+# Middleware to intercept requests if there was an import error
+@app.middleware("http")
+async def check_import_error(request: Request, call_next):
+    if import_error is not None:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Server failed to start due to import error:\n{import_error}"}
+        )
+    return await call_next(request)
 
 # Enable CORS for the React dev server
 app.add_middleware(
