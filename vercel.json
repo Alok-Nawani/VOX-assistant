@@ -9,7 +9,7 @@
       "src": "apps/webapp/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "apps/webapp/dist"
       }
     }
   ],
@@ -19,9 +19,11 @@
       "dest": "apps/api/main.py"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "apps/webapp/$1",
-      "check": true
+      "dest": "/index.html"
     }
   ]
 }

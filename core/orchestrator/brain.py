@@ -20,10 +20,16 @@ class Orchestrator:
         self.memory = MemoryManager()
         self.extractor = FactExtractor(self.memory)
         
-        # Initialize Proactive Engine
+        # Initialize Proactive Engine (NOT started here to avoid asyncio errors on Vercel)
         self.proactive = ProactiveEngine(self._proactive_callback)
-        asyncio.create_task(self.proactive.run())
+        self._proactive_started = False
         
+    async def startup(self):
+        """Must be called once from an async context (e.g. FastAPI startup event) to start background tasks"""
+        if not self._proactive_started:
+            self._proactive_started = True
+            asyncio.create_task(self.proactive.run())
+
     async def _proactive_callback(self, message: str):
         """Handle messages initiated by Vox spontaneously (Default to first user for now or latest active)"""
         # For simplicity in this demo, we'll log to user 1 if not specified

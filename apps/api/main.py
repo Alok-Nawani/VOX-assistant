@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from typing import Optional, Dict, List
@@ -33,6 +34,14 @@ system_controller = SystemController()
 app = FastAPI(title="Vox Core API")
 security = HTTPBearer()
 
+# Global JSON exception handler — ensures the frontend always gets JSON, never plain-text server errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {str(exc)}"}
+    )
+
 # Enable CORS for the React dev server
 app.add_middleware(
     CORSMiddleware,
@@ -41,8 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-system_controller = SystemController()
 
 class ChatRequest(BaseModel):
     text: str
@@ -80,6 +87,7 @@ async def startup_event():
     global _brain
     try:
         _brain = Orchestrator()
+        await _brain.startup()  # Start background tasks inside async context
         print("Vox Brain & Auth Engine: Online")
     except Exception as e:
         print(f"CRITICAL ERROR: Vox Brain failed to initialize: {e}")
