@@ -4,7 +4,10 @@ try:
     import pyautogui
 except ImportError:
     pyautogui = None
-import pyperclip
+try:
+    import pyperclip
+except ImportError:
+    pyperclip = None
 import platform
 import logging
 from typing import Optional
