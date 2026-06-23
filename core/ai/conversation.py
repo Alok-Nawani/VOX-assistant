@@ -1,4 +1,5 @@
 import os
+import asyncio
 import google.generativeai as genai
 from typing import Optional, List, Dict
 import logging
@@ -70,35 +71,48 @@ class AIConversationHandler:
 
             prompt = f"{system_instruction}\n\n{facts_str}{context_str}Alok: {text}\nVox:"
             
-            if image:
-                import base64
+            # Simple retry logic for rate limits
+            max_retries = 3
+            base_delay = 2
+            
+            for attempt in range(max_retries):
                 try:
-                    # Clean the base64 string if it contains the data:image prefix
-                    if "base64," in image:
-                        mime_type = image.split(":")[1].split(";")[0]
-                        image_data = image.split("base64,")[1]
+                    if image:
+                        import base64
+                        try:
+                            # Clean the base64 string if it contains the data:image prefix
+                            if "base64," in image:
+                                mime_type = image.split(":")[1].split(";")[0]
+                                image_data = image.split("base64,")[1]
+                            else:
+                                mime_type = "image/png"
+                                image_data = image
+                            
+                            decoded_image = base64.b64decode(image_data)
+                            image_blob = {"mime_type": mime_type, "data": decoded_image}
+                            
+                            # Update prompt for vision awareness
+                            vision_prompt = prompt + " (Alok has shared an image with you. Incorporate your observations naturally into your response.)"
+                            response = await self.model.generate_content_async([vision_prompt, image_blob])
+                        except Exception as e:
+                            logging.error(f"Image processing error: {e}")
+                            response = await self.model.generate_content_async(prompt)
                     else:
-                        mime_type = "image/png"
-                        image_data = image
-                    
-                    decoded_image = base64.b64decode(image_data)
-                    image_blob = {"mime_type": mime_type, "data": decoded_image}
-                    
-                    # Update prompt for vision awareness
-                    vision_prompt = prompt + " (Alok has shared an image with you. Incorporate your observations naturally into your response.)"
-                    response = await self.model.generate_content_async([vision_prompt, image_blob])
+                        response = await self.model.generate_content_async(prompt)
+                        
+                    return response.text.strip()
                 except Exception as e:
-                    logging.error(f"Image processing error: {e}")
-                    response = await self.model.generate_content_async(prompt)
-            else:
-                response = await self.model.generate_content_async(prompt)
-                
-            return response.text.strip()
+                    if "429" in str(e) and attempt < max_retries - 1:
+                        logging.warning(f"Rate limit hit, retrying in {base_delay}s... (Attempt {attempt + 1}/{max_retries})")
+                        await asyncio.sleep(base_delay)
+                        base_delay *= 2
+                        continue
+                    raise e
             
         except Exception as e:
             print(f"DEBUG: Conversation Error: {e}")
             if "429" in str(e):
-                return "I'm processing quite a bit right now, Alok. Could you give me about 30 seconds to catch my breath? My AI engine is currently hit a rate limit."
+                return "My systems are currently experiencing high traffic. Please try your request again in a moment."
             logging.error(f"Gemini API Error: {e}")
             return f"I encountered a slight neural glitch while thinking: {str(e)}"
 
